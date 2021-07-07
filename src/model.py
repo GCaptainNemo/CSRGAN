@@ -32,6 +32,8 @@ class GeneratorResNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=3, n_residual_blocks=16):
         super(GeneratorResNet, self).__init__()
         # First layer
+        self.extention = torch.ones([1, 1, 200, 200]).cuda()
+
         self.conv1 = nn.Sequential(nn.Conv2d(in_channels, 64,
                                              kernel_size=9,
                                              stride=1,
@@ -96,11 +98,9 @@ class GeneratorResNet(nn.Module):
         # blur, scale, noise
         physical_par = self.fc1(output).reshape(-1, 3, 1, 1)
         # 1 x 1 x H x W
-        extention = torch.unsqueeze(torch.unsqueeze(torch.ones(list(hr.shape[2:]),
-                                                               dtype=torch.float32, requires_grad=True),
-                                                    dim=0), dim=0)
+
         # N x 4 x H x W
-        physical_tensor = physical_par * extention
+        physical_tensor = physical_par * self.extention
         dis_input = torch.cat([hr, physical_tensor, lr], dim=1)
         return dis_input
 

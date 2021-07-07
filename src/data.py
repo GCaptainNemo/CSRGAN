@@ -37,7 +37,7 @@ class DataSampler(Dataset):
         # ################################################
 
         scale_factor = np.random.random(1) * 3 + 1
-        blur_img = cv2.resize(blur_img, (origin_col // scale_factor, origin_row // scale_factor),
+        blur_img = cv2.resize(blur_img, (int(origin_col // scale_factor), int(origin_row // scale_factor)),
                               interpolation=cv2.INTER_CUBIC)
         blur_img = np.array(blur_img, dtype=float) / 255
 
