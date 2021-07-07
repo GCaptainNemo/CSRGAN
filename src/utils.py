@@ -24,22 +24,39 @@ def construct_val_txt(address):
             txt.writelines(line)
 
 
+def get_minimal_grid(address):
+    file_lst = os.listdir(address)
+    minimize_pixel = np.inf
+    for i, file in enumerate(file_lst):
+        print("i = ", i)
+        img = cv2.imread(address + file, cv2.IMREAD_COLOR)
+        pixel_num = img.shape[0] * img.shape[1]
+        if pixel_num < minimize_pixel:
+            minimize_pixel = pixel_num
+    print(minimize_pixel)
+
+
 def pre_process(file_path):
     img = cv2.imread(file_path, cv2.IMREAD_COLOR)
+    print("origin shape = ", img.shape)
+    anchor_width = np.random.randint(0, img.shape[0] - 200)
+    anchor_height = np.random.randint(0, img.shape[1] - 200)
+    img = img[anchor_width:anchor_width + 200, anchor_height:anchor_height + 200, :]
+
     # gaussian matrix size and sigma bigger - > blurr
     blur_img = cv2.GaussianBlur(img, (15, 15), 80)
     down_scale = 4
     origin_row = blur_img.shape[0]
     origin_col = blur_img.shape[1]
     print("row = ", origin_row)
-    blur_img = cv2.resize(blur_img, (origin_col // 4, origin_row // 4), interpolation=cv2.INTER_CUBIC)
+    blur_img = cv2.resize(blur_img, (origin_col // down_scale, origin_row // down_scale), interpolation=cv2.INTER_CUBIC)
     blur_img = cv2.resize(blur_img, (origin_col, origin_row), interpolation=cv2.INTER_CUBIC)
     mean = 0
     var = 0.0001
     noise = np.random.normal(mean, var ** 0.5, img.shape)
     print(cv2.getGaussianKernel(3, 80))
     blur_img = blur_img.astype(float)
-    blur_img = np.array(blur_img / 255, dtype=float)
+    blur_img = np.array(blur_img, dtype=float) / 255
     cv2.namedWindow("blur_img", cv2.WINDOW_NORMAL)
     cv2.namedWindow("src", cv2.WINDOW_NORMAL)
     cv2.imshow("src", img)
@@ -50,6 +67,7 @@ def pre_process(file_path):
         low_clip = 0.
     out = np.clip(blur_img, low_clip, 1.0)
     blur_img = np.uint8(out * 255)
+    print("after shape = ", blur_img.shape)
     cv2.imshow("blur_img", blur_img)
     # print(img.shape)
     # print(type(blur_img[0, 0, 0]))
@@ -109,9 +127,9 @@ def plot_precision_recall_curve(address):
 if __name__ == "__main__":
     # construct_train_txt("../data/train/")
     # construct_val_txt("../data/valid/")
-
-    # pre_process("../data/train/0001.png")
-    frequent_show("../data/train/0001.png")
+    # get_minimal_grid("../data/train/")
+    pre_process("../data/train/0001.png")
+    # frequent_show("../data/train/0001.png")
 
 
     # dump_files("../../data/process", "../../data/")
