@@ -6,15 +6,16 @@ from src.train import Train
 
 txt_address = "../data/train.txt"
 
-data_sampler = DataSamplerTrain(txt=txt_address, batch_size=1)
+data_sampler = DataSamplerTrain(txt=txt_address, batch_size=10)
 # generator = GeneratorResNet()
-generator = GeneratorResNet().cuda()
+device = torch.device("cuda:1")
+generator = GeneratorResNet().cuda(device)
 # discriminator = Discriminator()
-discriminator = Discriminator().cuda()
+discriminator = Discriminator().cuda(device)
 
 train = Train(data_sampler=data_sampler, generator=generator, discriminator=discriminator,
               )
-train.train(epoch_num=10000, d_learning_rate=3e-4, g_learning_rate=3e-4)
+train.train(epoch_num=10000, d_learning_rate=3e-4, g_learning_rate=1e-5)
 
 
 with open("generator.pth", "wb+") as f:

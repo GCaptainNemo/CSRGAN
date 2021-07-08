@@ -14,8 +14,9 @@ class Train:
         self.data_loader = DataLoader(dataset=data_sampler, batch_size=data_sampler.batch_size, shuffle=True)
         # pass label = 1
         # no pass label = 0
-        self.true_label = torch.ones([self.data_sampler.batch_size, 1]).cuda()
-        self.false_label = torch.zeros([self.data_sampler.batch_size, 1]).cuda()
+        self.device = torch.device("cuda:1")
+        self.true_label = torch.ones([self.data_sampler.batch_size, 1]).cuda(self.device)
+        self.false_label = torch.zeros([self.data_sampler.batch_size, 1]).cuda(self.device)
 
     def train(self, epoch_num, d_learning_rate, g_learning_rate):
         optimizer_discriminator = optim.Adam(self.generator.parameters(), d_learning_rate)
@@ -31,9 +32,9 @@ class Train:
             g_loss_avg = 0
             # for i, (true_hr_par_lr, gen_input_lr) in enumerate(train_bar):
             for i, (true_hr, physical_tensor, lr_img) in enumerate(self.data_loader):
-                physical_tensor = physical_tensor.cuda()
-                true_hr = true_hr.cuda()
-                lr_img = lr_img.cuda()
+                physical_tensor = physical_tensor.cuda(self.device)
+                true_hr = true_hr.cuda(self.device)
+                lr_img = lr_img.cuda(self.device)
 
                 ############################
                 # (1) Update D network: maximize D(x)-1-D(G(z))
@@ -55,13 +56,14 @@ class Train:
                 ############################
                 # (2) Update G network: minimize 1-D(G(z)) + Perception Loss + Image Loss + TV Loss
                 ###########################
-                fake_img, fake_phy_tensor = self.generator(lr_img)
-                fake_out_1 = self.discriminator(fake_img)
+                fake_hr_g, fake_phy_tensor = self.generator(lr_img)
+                fake_out_1 = self.discriminator(fake_hr_g)
                 #######################################
 
                 optimizer_generator.zero_grad()
                 g_loss = criterion(fake_out_1, self.true_label) + \
-                         mse_loss(physical_tensor, fake_phy_tensor)
+                         0.1 * mse_loss(physical_tensor, fake_phy_tensor) + \
+                        0.3 * mse_loss(true_hr, fake_hr_g)
                 g_loss.backward()
                 optimizer_generator.step()
                 g_loss_avg += g_loss.detach().item()
