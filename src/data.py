@@ -5,12 +5,11 @@ import torch
 import torchvision.transforms as transforms
 import cv2
 from torch.utils.data import Dataset
-import torch.fft as fft
 
 
-class DataSampler(Dataset):
+class DataSamplerTrain(Dataset):
     def __init__(self, txt, batch_size):
-        super(DataSampler, self).__init__()
+        super(DataSamplerTrain, self).__init__()
         self.load_txt(txt)
         self.batch_size = batch_size
 

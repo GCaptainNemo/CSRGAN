@@ -10,6 +10,8 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 import itertools
 from torchvision import transforms
+from src.data import DataSamplerTrain
+from torch.utils.data import DataLoader
 
 
 class InferenceDataset(Dataset):
@@ -112,63 +114,19 @@ def plot_wrong_img_pairs(address):
 
 
 if __name__ == "__main__":
-    siamese_nn = torch.load("model.pth")
-    siamese_nn = siamese_nn.eval()
-    inference_dataset = InferenceDataset("../pos_samples.txt")
-    batch_size = 16
-    dataloader = DataLoader(inference_dataset, batch_size=batch_size, shuffle=False)
-    epsilon = 0.01
-    margin = 2.0
-    true_num = 0
-    total_num = 0
-    # construct a confusion matrix
-    conf_matrix = torch.zeros(2, 2)
-    wrong_img_pairs = []
-    to_pil = transforms.ToPILImage()
-    dis_label_lst = []
-    for i, data in enumerate(dataloader):
-        img0, img1, label = data
-        img0, img1, label = img0.cuda(), img1.cuda(), label.cuda()  # 数据移至GPU
-        dis_label = []
-        # dim = batchsize x 30 (embedding space dimension)
-        output1, output2 = siamese_nn(img0, img1)
-        euclidean_dis = functional.pairwise_distance(output1, output2, keepdim=True)
-        dis_label.append(euclidean_dis.detach().cpu())
-        dis_label.append(label.detach().cpu())
-        dis_label_lst.append(dis_label)
-        # set all are positive samples
-        prediction = torch.zeros([img0.shape[0], 1], dtype=torch.int).cuda()
-        # distance > margin - epsilon: negative samples, label=1
-        # prediction[torch.where(euclidean_dis > margin )] = 1
-        prediction[torch.where(euclidean_dis > 1.148 )] = 1
-
-        # print((prediction - label).shape)
-        true_num += len(torch.where(torch.abs(prediction - label) < epsilon)[0])  # 正确数目
-        wrong_num = len(torch.where(torch.abs(prediction - label) > epsilon)[0])
-
-        if wrong_num > 0:
-            print("wrong exist ", wrong_num)
-            lst = []
-            for i in range(wrong_num):
-                lst.append(to_pil(img0[torch.where(torch.abs(prediction - label) > epsilon)[0][i], :, :, :].cpu().squeeze(0)))
-                lst.append(to_pil(img1[torch.where(torch.abs(prediction - label) > epsilon)[0][i], :, :, :].cpu().squeeze(0)))
-                wrong_img_pairs.append(lst)
-        # print("true num = ", true_num)
-        total_num += img0.shape[0]  # 总数目
-        # print("total_num = ", total_num)
-        conf_matrix = confusion_matrix(prediction, labels=label, conf_matrix=conf_matrix)
-
-    with open("dis_label.pkl", "wb+") as f:
-        pickle.dump(dis_label_lst, f)
-
-    print("TF+TN:", true_num, "\n")
-    print("Total:", total_num, "\n")
-    print("Accuracy:", true_num / total_num)
-    # conf_matrix = torch.tensor([[9982,  32],
-    #                             [0, 15932]])
-    plot_confusion_matrix(conf_matrix.numpy(), classes=["positive", "negative"], normalize=False,
-                          title='Confusion Matrix')
-    #
-    # with open("wrong_img_pairs.pkl", "wb+") as f:
-    #     pickle.dump(wrong_img_pairs, f)
-    # plot_wrong_img_pairs("wrong_img_pairs.pkl")
+    txt_address = "../data/train.txt"
+    data_loader = DataLoader(DataSamplerTrain(txt=txt_address, batch_size=1), batch_size=1)
+    generator_nn = torch.load("generator-99.pth")
+    # generator_nn.to("cpu")
+    generator_nn = generator_nn.eval()
+    # generator_nn.extention.to("cpu")
+    for i, (dis_input, gen_input) in enumerate(data_loader):
+        img = torch.squeeze(generator_nn(gen_input.cuda())[:, :3, :, :], dim=0)
+        print("img.shape = ", img.shape)
+        pil_img = transforms.ToPILImage()(img)
+        print(pil_img)
+        print(type(pil_img))
+        img = cv2.cvtColor(np.asarray(pil_img), cv2.COLOR_RGB2BGR)
+        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        cv2.imshow("test", img)
+        cv2.waitKey(0)
