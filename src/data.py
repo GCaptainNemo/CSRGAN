@@ -74,19 +74,14 @@ class DataSamplerTrain(Dataset):
         cv_src_img = cv_src_img[anchor_width:anchor_width + 200, anchor_height:anchor_height + 200, :]
 
         lr, blur_sigma, scale_factor, noise_sigma = self.get_lr_img(cv_src_img)
-        hr_img = transforms.ToTensor()(cv_src_img)
+        true_hr = transforms.ToTensor()(cv_src_img)
         lr_img = transforms.ToTensor()(lr)
+        physical_tensor = torch.cat([blur_sigma, scale_factor, noise_sigma], dim=0)
         # #########################################################################
         # extend to physical parameters tensor
         # ########################################################################
-        blur_tensor = torch.unsqueeze(torch.ones(hr_img.shape[1:], dtype=torch.float32) * blur_sigma, dim=0)
-        scale_tensor = torch.unsqueeze(torch.ones(hr_img.shape[1:], dtype=torch.float32) * scale_factor, dim=0)
-        noise_tensor = torch.unsqueeze(torch.ones(hr_img.shape[1:], dtype=torch.float32) * noise_sigma, dim=0)
 
         # discriminator input (HR, BLUR, SCALE, NOISE, IR)
-        true_hr_phy_lr = torch.cat([hr_img, blur_tensor, scale_tensor, noise_tensor, lr_img], dim=0).to(torch.float32)
 
-        # generator input (lr_img)
-        generator_input = lr_img
-        return true_hr_phy_lr, generator_input
+        return true_hr, physical_tensor, lr_img
 

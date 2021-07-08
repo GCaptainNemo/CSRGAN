@@ -84,23 +84,19 @@ class GeneratorResNet(nn.Module):
         hr = self.res_blocks(out1)
         out2 = self.cnn1(hr)
         output = out2.view(out2.size()[0], -1)
-        # N x 4 x 1 x 1
+        # N x 3 x 1 x 1
         # blur, scale, noise
-        physical_par = self.fc1(output).reshape(-1, 3, 1, 1)
-        # 1 x 1 x H x W
-
-        # N x 4 x H x W
-        physical_tensor = physical_par * self.extention
-        dis_input = torch.cat([hr, physical_tensor, lr], dim=1)
-        return dis_input
+        physical_par = self.fc1(output)
+        # take physical parameters as bonus
+        return hr, physical_par
 
 
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        # N x 9 x 200 x 200
+        # N x 3 x 200 x 200
         self.cnn1_dis = nn.Sequential(
-            nn.Conv2d(9, 4, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(3, 4, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(4),
             nn.ReLU(inplace=True),  # inplace=True 直接在原地址上修改变量
             nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
@@ -143,7 +139,7 @@ class Discriminator(nn.Module):
         output = self.fc1_dis(output)
         return output
 
-    def forward(self, hr_phy_lr):
+    def forward(self, hr):
         # N x 1
-        output = self.forward_once(hr_phy_lr)
+        output = self.forward_once(hr)
         return output

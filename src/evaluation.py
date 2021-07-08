@@ -117,6 +117,7 @@ if __name__ == "__main__":
     txt_address = "../data/train.txt"
     data_loader = DataLoader(DataSamplerTrain(txt=txt_address, batch_size=1), batch_size=1)
     generator_nn = torch.load("generator-99.pth")
+    print(generator_nn.extention)
     # generator_nn.to("cpu")
     generator_nn = generator_nn.eval()
     # generator_nn.extention.to("cpu")

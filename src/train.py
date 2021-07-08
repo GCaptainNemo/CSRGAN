@@ -29,32 +29,35 @@ class Train:
             d_loss_avg = 0
             g_loss_avg = 0
             # for i, (true_hr_par_lr, gen_input_lr) in enumerate(train_bar):
-            for i, (true_hr_par_lr, gen_input_lr) in enumerate(self.data_loader):
+            for i, (true_hr, physical_tensor, lr_img) in enumerate(self.data_loader):
 
-                true_hr_par_lr = true_hr_par_lr.cuda()
-                gen_input_lr = gen_input_lr.cuda()
+                true_hr = true_hr.cuda()
+                lr_img = lr_img.cuda()
 
                 ############################
                 # (1) Update D network: maximize D(x)-1-D(G(z))
                 ###########################
-                fake_hr_physical_par = self.generator(gen_input_lr)
+                fake_hr, fake_physical_par = self.generator(lr_img)
                 optimizer_discriminator.zero_grad()
-                real_out = self.discriminator(true_hr_par_lr)
-                fake_out_1 = self.discriminator(fake_hr_physical_par)
+                real_out = self.discriminator(true_hr)
+                fake_out_1 = self.discriminator(fake_hr)
 
                 # convert physical parameters
-                fake_linshi = fake_hr_physical_par.clone()
-                linshi = fake_linshi[:, 4:7, :, :]
-                true_linshi = true_hr_par_lr.clone()
-                fake_linshi[:, 4:7, :, :] = true_linshi[:, 4:7, :, :]
-                true_linshi[:, 4:7, :, :] = linshi
-                fake_out_2 = self.discriminator(fake_linshi)
-                fake_out_3 = self.discriminator(true_linshi)
+                # fake_linshi = fake_hr_physical_par.clone()
+                # linshi = fake_linshi[:, 4:7, :, :]
+                # true_linshi = true_hr_par_lr.clone()
+                # fake_linshi[:, 4:7, :, :] = true_linshi[:, 4:7, :, :]
+                # true_linshi[:, 4:7, :, :] = linshi
+                # fake_out_2 = self.discriminator(fake_linshi)
+                # fake_out_3 = self.discriminator(true_linshi)
 
+                # d_loss = criterion(real_out, self.true_label) + \
+                #          criterion(fake_out_1, self.false_label) + \
+                #          criterion(fake_out_2, self.false_label) + \
+                #          criterion(fake_out_3, self.false_label)
                 d_loss = criterion(real_out, self.true_label) + \
-                         criterion(fake_out_1, self.false_label) + \
-                         criterion(fake_out_2, self.false_label) + \
-                         criterion(fake_out_3, self.false_label)
+                         criterion(fake_out_1, self.false_label) + nn.MSELoss(physical_tensor, fake_physical_par)
+
                 d_loss.backward()
                 print("epoch = ", epoch, "iterations = ", i, "d-loss = ", d_loss.detach().item())
 
@@ -66,7 +69,7 @@ class Train:
                 ###########################
                 ###### Was causing Runtime Error ######
 
-                fake_img = self.generator(gen_input_lr)
+                fake_img = self.generator(lr_img)
                 fake_out_1 = self.discriminator(fake_img)
                 #######################################
                 optimizer_generator.zero_grad()
