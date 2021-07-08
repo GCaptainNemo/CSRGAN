@@ -21,6 +21,7 @@ class Train:
         optimizer_discriminator = optim.Adam(self.generator.parameters(), d_learning_rate)
         optimizer_generator = optim.Adam(self.generator.parameters(), g_learning_rate)
         criterion = nn.BCELoss()
+        mse_loss = nn.MSELoss(reduce=True, size_average=True)
         d_loss_lst = []
         g_loss_lst = []
         for epoch in range(1, epoch_num + 1):
@@ -30,7 +31,7 @@ class Train:
             g_loss_avg = 0
             # for i, (true_hr_par_lr, gen_input_lr) in enumerate(train_bar):
             for i, (true_hr, physical_tensor, lr_img) in enumerate(self.data_loader):
-
+                physical_tensor = physical_tensor.cuda()
                 true_hr = true_hr.cuda()
                 lr_img = lr_img.cuda()
 
@@ -42,21 +43,8 @@ class Train:
                 real_out = self.discriminator(true_hr)
                 fake_out_1 = self.discriminator(fake_hr)
 
-                # convert physical parameters
-                # fake_linshi = fake_hr_physical_par.clone()
-                # linshi = fake_linshi[:, 4:7, :, :]
-                # true_linshi = true_hr_par_lr.clone()
-                # fake_linshi[:, 4:7, :, :] = true_linshi[:, 4:7, :, :]
-                # true_linshi[:, 4:7, :, :] = linshi
-                # fake_out_2 = self.discriminator(fake_linshi)
-                # fake_out_3 = self.discriminator(true_linshi)
-
-                # d_loss = criterion(real_out, self.true_label) + \
-                #          criterion(fake_out_1, self.false_label) + \
-                #          criterion(fake_out_2, self.false_label) + \
-                #          criterion(fake_out_3, self.false_label)
                 d_loss = criterion(real_out, self.true_label) + \
-                         criterion(fake_out_1, self.false_label) + nn.MSELoss(physical_tensor, fake_physical_par)
+                         criterion(fake_out_1, self.false_label)
 
                 d_loss.backward()
                 print("epoch = ", epoch, "iterations = ", i, "d-loss = ", d_loss.detach().item())
@@ -67,13 +55,13 @@ class Train:
                 ############################
                 # (2) Update G network: minimize 1-D(G(z)) + Perception Loss + Image Loss + TV Loss
                 ###########################
-                ###### Was causing Runtime Error ######
-
-                fake_img = self.generator(lr_img)
+                fake_img, fake_phy_tensor = self.generator(lr_img)
                 fake_out_1 = self.discriminator(fake_img)
                 #######################################
+
                 optimizer_generator.zero_grad()
-                g_loss = criterion(fake_out_1, self.true_label)
+                g_loss = criterion(fake_out_1, self.true_label) + \
+                         mse_loss(physical_tensor, fake_phy_tensor)
                 g_loss.backward()
                 optimizer_generator.step()
                 g_loss_avg += g_loss.detach().item()

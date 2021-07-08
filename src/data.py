@@ -76,7 +76,7 @@ class DataSamplerTrain(Dataset):
         lr, blur_sigma, scale_factor, noise_sigma = self.get_lr_img(cv_src_img)
         true_hr = transforms.ToTensor()(cv_src_img)
         lr_img = transforms.ToTensor()(lr)
-        physical_tensor = torch.cat([blur_sigma, scale_factor, noise_sigma], dim=0)
+        physical_tensor = torch.tensor([blur_sigma, scale_factor, noise_sigma], dtype=torch.float32)
         # #########################################################################
         # extend to physical parameters tensor
         # ########################################################################

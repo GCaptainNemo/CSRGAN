@@ -6,7 +6,7 @@ from src.train import Train
 
 txt_address = "../data/train.txt"
 
-data_sampler = DataSamplerTrain(txt=txt_address, batch_size=5)
+data_sampler = DataSamplerTrain(txt=txt_address, batch_size=1)
 # generator = GeneratorResNet()
 generator = GeneratorResNet().cuda()
 # discriminator = Discriminator()
