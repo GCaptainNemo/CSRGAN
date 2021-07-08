@@ -36,6 +36,22 @@ def get_minimal_grid(address):
     print(minimize_pixel)
 
 
+def cal_gaussian_kernel(sigma, size):
+    """
+    calculate gaussian blur kernel according to opencv
+    https://blog.csdn.net/wuqindeyunque/article/details/103694900
+    """
+    kernel = np.zeros([size, size], dtype=float)
+    if sigma <= 0:
+        sigma = 0.3 * ((size - 1) / 2 - 1) + 0.8
+    center = (size - 1) / 2
+    for i in range(size):
+        for j in range(size):
+            kernel[i, j] = np.exp(-((i - center)**2 + (j - center) ** 2) / 2 / sigma ** 2)
+    kernel /= np.sum(kernel)
+    return kernel
+
+
 def pre_process(file_path):
     img = cv2.imread(file_path, cv2.IMREAD_COLOR)
     print("origin shape = ", img.shape)
@@ -61,6 +77,7 @@ def pre_process(file_path):
     blur_img = cv2.resize(blur_img, (origin_col // down_scale, origin_row // down_scale), interpolation=cv2.INTER_CUBIC)
     blur_img = cv2.resize(blur_img, (origin_col, origin_row), interpolation=cv2.INTER_CUBIC)
     print(cv2.getGaussianKernel(3, 80))
+    print(cal_gaussian_kernel(80, 3))
     blur_img = blur_img.astype(float)
     blur_img = np.array(blur_img, dtype=float) / 255.0
     # ############################################################
