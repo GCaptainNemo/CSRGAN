@@ -116,13 +116,14 @@ def plot_wrong_img_pairs(address):
 if __name__ == "__main__":
     txt_address = "../data/train.txt"
     data_loader = DataLoader(DataSamplerTrain(txt=txt_address, batch_size=1), batch_size=1)
-    generator_nn = torch.load("generator-99.pth")
-    print(generator_nn.extention)
+    device = torch.device("cuda:0")
+    generator_nn = torch.load("generator-299.pth", map_location=device)
+    # generator_nn.to(device)
     # generator_nn.to("cpu")
     generator_nn = generator_nn.eval()
     # generator_nn.extention.to("cpu")
-    for i, (dis_input, gen_input) in enumerate(data_loader):
-        img = torch.squeeze(generator_nn(gen_input.cuda())[:, :3, :, :], dim=0)
+    for i, (lr, phy_par, hr) in enumerate(data_loader):
+        img = torch.squeeze(generator_nn(lr.cuda())[0], dim=0)
         print("img.shape = ", img.shape)
         pil_img = transforms.ToPILImage()(img)
         print(pil_img)

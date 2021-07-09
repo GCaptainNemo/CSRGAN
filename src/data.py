@@ -65,13 +65,13 @@ class DataSamplerTrain(Dataset):
         address = self.content[item].strip()
 
         # ###########################################
-        # randomly choose 200x200 pixel image
+        # randomly choose 572x572 pixel image
         # ###########################################
 
         cv_src_img = cv2.imread(address, cv2.IMREAD_COLOR)
-        anchor_width = np.random.randint(0, cv_src_img.shape[0] - 200)
-        anchor_height = np.random.randint(0, cv_src_img.shape[1] - 200)
-        cv_src_img = cv_src_img[anchor_width:anchor_width + 200, anchor_height:anchor_height + 200, :]
+        anchor_width = np.random.randint(0, cv_src_img.shape[0] - 572)
+        anchor_height = np.random.randint(0, cv_src_img.shape[1] - 572)
+        cv_src_img = cv_src_img[anchor_width:anchor_width + 572, anchor_height:anchor_height + 572, :]
 
         lr, blur_sigma, scale_factor, noise_sigma = self.get_lr_img(cv_src_img)
         true_hr = transforms.ToTensor()(cv_src_img)
