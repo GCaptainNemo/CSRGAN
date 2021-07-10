@@ -62,7 +62,9 @@ class GeneratorResNet(nn.Module):
         self.layer7_conv = Conv2dBN(64, 32)
         self.layer8_conv = Conv2dBN(32, 16)
         self.layer9_conv = Conv2dBN(16, 8)
-        self.layer10_conv = nn.Conv2d(8, 6, kernel_size=3,
+        # self.layer10_conv = nn.Conv2d(8, 6, kernel_size=3,
+        #                               stride=1, padding=1, bias=True)
+        self.layer10_conv = nn.Conv2d(8, 4, kernel_size=3,
                                       stride=1, padding=1, bias=True)
 
         self.deconv1 = Deconv2dBN(128, 64)
@@ -104,11 +106,11 @@ class GeneratorResNet(nn.Module):
         conv9 = self.layer9_conv(concat4)
         outp = self.layer10_conv(conv9)
         hr = outp[:, :3, :, :]
-        phy = outp[:, :3, :, :]
+        phy = outp[:, 3:, :, :]
         physical_par = torch.mean(torch.mean(phy, dim=3), dim=2)
 
         # outp = self.sigmoid(outp)
-        return outp, physical_par
+        return hr, physical_par
 
 # class GeneratorResNet(nn.Module):
 #     def __init__(self, in_channels=3, n_residual_blocks=16):
@@ -190,29 +192,29 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(4),
             nn.ReLU(inplace=True),  # inplace=True 直接在原地址上修改变量
             nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
-            # 4 x 100 x 100
+            # 4 x 256 x 256
 
             nn.Conv2d(4, 8, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(8),
             nn.ReLU(inplace=True),
             nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
-            # 8 x 50 x 50
+            # 8 x 128 x 128
 
             nn.Conv2d(8, 16, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU(inplace=True),
             nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
-            # 16 x 25 x 25
+            # 16 x 64 x 64
 
             nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
-            # 32 x 12 x 12
+            # 32 x 32 x 32
         )
 
         self.fc1_dis = nn.Sequential(
-            nn.Linear(32 * 12 * 12, 500),
+            nn.Linear(32 * 32 * 32, 500),
             nn.ReLU(inplace=True),
             nn.Linear(500, 100),
             nn.ReLU(inplace=True),

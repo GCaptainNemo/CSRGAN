@@ -1,14 +1,12 @@
 from src.data import DataSamplerTrain
 from src.model import GeneratorResNet, Discriminator
 import torch
-
-from src.train import Train
+from src.train import Train, device
 
 txt_address = "../data/train.txt"
 
-data_sampler = DataSamplerTrain(txt=txt_address, batch_size=10)
+data_sampler = DataSamplerTrain(txt=txt_address, batch_size=1)
 # generator = GeneratorResNet()
-device = torch.device("cuda:1")
 generator = GeneratorResNet().cuda(device)
 # discriminator = Discriminator()
 discriminator = Discriminator().cuda(device)

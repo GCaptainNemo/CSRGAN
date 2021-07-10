@@ -4,6 +4,7 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import pickle
+device = torch.device("cuda:0")
 
 
 class Train:
@@ -14,9 +15,8 @@ class Train:
         self.data_loader = DataLoader(dataset=data_sampler, batch_size=data_sampler.batch_size, shuffle=True)
         # pass label = 1
         # no pass label = 0
-        self.device = torch.device("cuda:1")
-        self.true_label = torch.ones([self.data_sampler.batch_size, 1]).cuda(self.device)
-        self.false_label = torch.zeros([self.data_sampler.batch_size, 1]).cuda(self.device)
+        self.true_label = torch.ones([self.data_sampler.batch_size, 1]).cuda(device)
+        self.false_label = torch.zeros([self.data_sampler.batch_size, 1]).cuda(device)
 
     def train(self, epoch_num, d_learning_rate, g_learning_rate):
         optimizer_discriminator = optim.Adam(self.generator.parameters(), d_learning_rate)
@@ -32,9 +32,9 @@ class Train:
             g_loss_avg = 0
             # for i, (true_hr_par_lr, gen_input_lr) in enumerate(train_bar):
             for i, (true_hr, physical_tensor, lr_img) in enumerate(self.data_loader):
-                physical_tensor = physical_tensor.cuda(self.device)
-                true_hr = true_hr.cuda(self.device)
-                lr_img = lr_img.cuda(self.device)
+                physical_tensor = physical_tensor.cuda(device)
+                true_hr = true_hr.cuda(device)
+                lr_img = lr_img.cuda(device)
 
                 ############################
                 # (1) Update D network: maximize D(x)-1-D(G(z))

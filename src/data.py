@@ -28,25 +28,25 @@ class DataSamplerTrain(Dataset):
 
         blur_sigma = float(np.random.random(1) * 50)
         blur_img = cv2.GaussianBlur(hr_img, (15, 15), blur_sigma)
-        origin_row = blur_img.shape[0]
-        origin_col = blur_img.shape[1]
+        # origin_row = blur_img.shape[0]
+        # origin_col = blur_img.shape[1]
 
         # ###############################################
         # down scale
         # ################################################
 
-        scale_factor = np.random.random(1) * 3 + 1
-        blur_img = cv2.resize(blur_img, (int(origin_col // scale_factor), int(origin_row // scale_factor)),
-                              interpolation=cv2.INTER_CUBIC)
+        # scale_factor = np.random.random(1) * 3 + 1
+        # blur_img = cv2.resize(blur_img, (int(origin_col // scale_factor), int(origin_row // scale_factor)),
+        #                       interpolation=cv2.INTER_CUBIC)
         blur_img = np.array(blur_img, dtype=float) / 255
 
         # ###############################################
         # add noise
         # ################################################
 
-        noise_sigma = np.random.random(1)
-        noise = np.random.normal(0, noise_sigma ** 0.5, blur_img.shape)
-        blur_img += noise
+        # noise_sigma = np.random.random(1)
+        # noise = np.random.normal(0, noise_sigma ** 0.5, blur_img.shape)
+        # blur_img += noise
         if blur_img.min() < 0:
             low_clip = -1.
         else:
@@ -58,8 +58,10 @@ class DataSamplerTrain(Dataset):
         # back size
         # #############################################
 
-        lr = cv2.resize(blur_img, (origin_col, origin_row), interpolation=cv2.INTER_CUBIC)
-        return lr, blur_sigma, scale_factor, noise_sigma
+        # lr = cv2.resize(blur_img, (origin_col, origin_row), interpolation=cv2.INTER_CUBIC)
+        # return lr, blur_sigma, scale_factor, noise_sigma
+        return blur_img, blur_sigma
+
 
     def __getitem__(self, item):
         address = self.content[item].strip()
@@ -69,14 +71,18 @@ class DataSamplerTrain(Dataset):
         # ###########################################
 
         cv_src_img = cv2.imread(address, cv2.IMREAD_COLOR)
-        anchor_width = np.random.randint(0, cv_src_img.shape[0] - 572)
-        anchor_height = np.random.randint(0, cv_src_img.shape[1] - 572)
-        cv_src_img = cv_src_img[anchor_width:anchor_width + 572, anchor_height:anchor_height + 572, :]
+        anchor_width = np.random.randint(0, cv_src_img.shape[0] - 512)
+        anchor_height = np.random.randint(0, cv_src_img.shape[1] - 512)
+        cv_src_img = cv_src_img[anchor_width:anchor_width + 512, anchor_height:anchor_height + 512, :]
 
-        lr, blur_sigma, scale_factor, noise_sigma = self.get_lr_img(cv_src_img)
+        # lr, blur_sigma, scale_factor, noise_sigma = self.get_lr_img(cv_src_img)
+        lr, blur_sigma = self.get_lr_img(cv_src_img)
+
         true_hr = transforms.ToTensor()(cv_src_img)
         lr_img = transforms.ToTensor()(lr)
-        physical_tensor = torch.tensor([blur_sigma, scale_factor, noise_sigma], dtype=torch.float32)
+        # physical_tensor = torch.tensor([blur_sigma, scale_factor, noise_sigma], dtype=torch.float32)
+        physical_tensor = torch.tensor([blur_sigma], dtype=torch.float32)
+
         # #########################################################################
         # extend to physical parameters tensor
         # ########################################################################
