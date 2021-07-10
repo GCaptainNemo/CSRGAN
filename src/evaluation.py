@@ -122,21 +122,28 @@ if __name__ == "__main__":
     # generator_nn.to("cpu")
     generator_nn = generator_nn.eval()
     # generator_nn.extention.to("cpu")
-    for i, (lr, phy_par, hr) in enumerate(data_loader):
-        img = torch.squeeze(generator_nn(lr.cuda())[0], dim=0)
-        print("img.shape = ", img.shape)
-        pil_img = transforms.ToPILImage()(img)
+    for i, (hr, phy_par, lr) in enumerate(data_loader):
+        sr = torch.squeeze(generator_nn(lr.cuda())[0], dim=0)
+        print(torch.max(lr))
+        print("img.shape = ", sr.shape)
+        pil_img = transforms.ToPILImage()(sr)
         print(pil_img)
         print(type(pil_img))
         # img = cv2.cvtColor(np.asarray(pil_img), cv2.COLOR_RGB2BGR)
-        img = np.asarray(pil_img)
+        sr = np.asarray(pil_img)
 
         lr = torch.squeeze(lr, dim=0)
         pil_img_lr = transforms.ToPILImage()(lr)
         # img_lr = cv2.cvtColor(np.asarray(pil_img_lr), cv2.COLOR_RGB2BGR)
         img_lr = np.asarray(pil_img_lr)
 
-        img = np.hstack([img, img_lr])
+        hr = torch.squeeze(hr, dim=0)
+        pil_img_hr = transforms.ToPILImage()(hr)
+        # img_lr = cv2.cvtColor(np.asarray(pil_img_lr), cv2.COLOR_RGB2BGR)
+        img_hr = np.asarray(pil_img_hr)
+
+
+        sr = np.hstack([sr, img_lr, img_hr])
         cv2.namedWindow("test", cv2.WINDOW_NORMAL)
-        cv2.imshow("test", img)
+        cv2.imshow("test", sr)
         cv2.waitKey(0)

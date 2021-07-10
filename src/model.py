@@ -66,6 +66,7 @@ class GeneratorResNet(nn.Module):
         #                               stride=1, padding=1, bias=True)
         self.layer10_conv = nn.Conv2d(8, 4, kernel_size=3,
                                       stride=1, padding=1, bias=True)
+        self.color_normalize_layer = nn.Sigmoid()
 
         self.deconv1 = Deconv2dBN(128, 64)
         self.deconv2 = Deconv2dBN(64, 32)
@@ -105,6 +106,7 @@ class GeneratorResNet(nn.Module):
         concat4 = torch.cat([convt4, conv1], dim=1)
         conv9 = self.layer9_conv(concat4)
         outp = self.layer10_conv(conv9)
+        # hr = self.color_normalize_layer(outp[:, :3, :, :])
         hr = outp[:, :3, :, :]
         phy = outp[:, 3:, :, :]
         physical_par = torch.mean(torch.mean(phy, dim=3), dim=2)
