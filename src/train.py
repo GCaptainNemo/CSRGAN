@@ -19,7 +19,7 @@ class Train:
         self.false_label = torch.zeros([self.data_sampler.batch_size, 1]).cuda(device)
 
     def train(self, epoch_num, d_learning_rate, g_learning_rate):
-        optimizer_discriminator = optim.Adam(self.generator.parameters(), d_learning_rate)
+        optimizer_discriminator = optim.Adam(self.discriminator.parameters(), d_learning_rate)
         optimizer_generator = optim.Adam(self.generator.parameters(), g_learning_rate)
         criterion = nn.BCELoss()
         mse_loss = nn.MSELoss(reduce=True, size_average=True)

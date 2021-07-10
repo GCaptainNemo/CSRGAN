@@ -13,7 +13,7 @@ discriminator = Discriminator().cuda(device)
 
 train = Train(data_sampler=data_sampler, generator=generator, discriminator=discriminator,
               )
-train.train(epoch_num=10000, d_learning_rate=3e-4, g_learning_rate=1e-5)
+train.train(epoch_num=10000, d_learning_rate=3e-4, g_learning_rate=3e-4)
 
 
 with open("generator.pth", "wb+") as f:
