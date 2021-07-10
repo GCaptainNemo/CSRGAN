@@ -117,7 +117,7 @@ if __name__ == "__main__":
     txt_address = "../data/train.txt"
     data_loader = DataLoader(DataSamplerTrain(txt=txt_address, batch_size=1), batch_size=1)
     device = torch.device("cuda:0")
-    generator_nn = torch.load("generator-299.pth", map_location=device)
+    generator_nn = torch.load("generator-699.pth", map_location=device)
     # generator_nn.to(device)
     # generator_nn.to("cpu")
     generator_nn = generator_nn.eval()
@@ -128,7 +128,15 @@ if __name__ == "__main__":
         pil_img = transforms.ToPILImage()(img)
         print(pil_img)
         print(type(pil_img))
-        img = cv2.cvtColor(np.asarray(pil_img), cv2.COLOR_RGB2BGR)
+        # img = cv2.cvtColor(np.asarray(pil_img), cv2.COLOR_RGB2BGR)
+        img = np.asarray(pil_img)
+
+        lr = torch.squeeze(lr, dim=0)
+        pil_img_lr = transforms.ToPILImage()(lr)
+        # img_lr = cv2.cvtColor(np.asarray(pil_img_lr), cv2.COLOR_RGB2BGR)
+        img_lr = np.asarray(pil_img_lr)
+
+        img = np.hstack([img, img_lr])
         cv2.namedWindow("test", cv2.WINDOW_NORMAL)
         cv2.imshow("test", img)
         cv2.waitKey(0)
