@@ -62,8 +62,8 @@ class Train:
 
                 optimizer_generator.zero_grad()
                 g_loss = criterion(fake_out_1, self.true_label) + \
-                         0.1 * mse_loss(physical_tensor, fake_phy_tensor) + \
-                        0.3 * mse_loss(true_hr, fake_hr_g)
+                           mse_loss(physical_tensor, fake_phy_tensor) + \
+                        10000 * mse_loss(true_hr, fake_hr_g)
                 g_loss.backward()
                 optimizer_generator.step()
                 g_loss_avg += g_loss.detach().item()
