@@ -12,6 +12,7 @@ import itertools
 from torchvision import transforms
 from src.data import DataSamplerTrain
 from torch.utils.data import DataLoader
+from skimage.measure import compare_psnr, compare_ssim, compare_mse
 
 
 class InferenceDataset(Dataset):
@@ -113,18 +114,24 @@ def plot_wrong_img_pairs(address):
             cv2.imwrite("../../result/{}.jpg".format(i // 8), imgs * 255)
 
 
+def get_psnr(img1, img2):
+    return compare_psnr(img1, img2)
+
+
 if __name__ == "__main__":
     txt_address = "../data/train.txt"
     data_loader = DataLoader(DataSamplerTrain(txt=txt_address, batch_size=1), batch_size=1)
     device = torch.device("cuda:0")
     # generator_nn = torch.load("../result/model-v2/generator-2899.pth", map_location=device)
-    generator_nn = torch.load("../result/model-v3/generator-3099.pth", map_location=device)
+    generator_nn = torch.load("../result/model-v3/generator-4499.pth", map_location=device)
 
     # generator_nn = torch.load("generator-399.pth", map_location=device)
     # generator_nn.to(device)
     # generator_nn.to("cpu")
     generator_nn = generator_nn.eval()
     # generator_nn.extention.to("cpu")
+    total_psnr = 0
+    total_ssim = 0
     for i, (hr, phy_par, lr) in enumerate(data_loader):
         sr = torch.squeeze(generator_nn(lr.cuda())[0], dim=0)
         print(torch.max(lr))
@@ -145,8 +152,18 @@ if __name__ == "__main__":
         # img_lr = cv2.cvtColor(np.asarray(pil_img_lr), cv2.COLOR_RGB2BGR)
         img_hr = np.asarray(pil_img_hr)
 
+        psnr = get_psnr(sr, img_hr)
+        total_psnr += psnr
+        ssim = compare_ssim(sr, img_hr, multichannel=True)
+        total_ssim += ssim
+        # print("psnr = ", )
+        # print("ssim = ", compare_ssim(sr, img_hr))
 
-        sr = np.hstack([sr, img_lr, img_hr])
-        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
-        cv2.imshow("test", sr)
-        cv2.waitKey(0)
+        # sr = np.hstack([sr, img_lr, img_hr])
+        # cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        # cv2.imshow("test", sr)
+        # cv2.waitKey(0)
+    total_psnr /= (i + 1)
+    total_ssim /= (i + 1)
+    print("avaerage psnr = ", psnr)
+    print("avaerage ssim = ", ssim)
