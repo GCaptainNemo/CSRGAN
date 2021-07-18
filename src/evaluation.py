@@ -117,7 +117,8 @@ if __name__ == "__main__":
     txt_address = "../data/train.txt"
     data_loader = DataLoader(DataSamplerTrain(txt=txt_address, batch_size=1), batch_size=1)
     device = torch.device("cuda:0")
-    generator_nn = torch.load("../result/model-v2/generator-2899.pth", map_location=device)
+    # generator_nn = torch.load("../result/model-v2/generator-2899.pth", map_location=device)
+    generator_nn = torch.load("../result/model-v3/generator-3099.pth", map_location=device)
 
     # generator_nn = torch.load("generator-399.pth", map_location=device)
     # generator_nn.to(device)
