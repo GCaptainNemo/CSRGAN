@@ -114,10 +114,6 @@ def plot_wrong_img_pairs(address):
             cv2.imwrite("../../result/{}.jpg".format(i // 8), imgs * 255)
 
 
-def get_psnr(img1, img2):
-    return compare_psnr(img1, img2)
-
-
 if __name__ == "__main__":
     txt_address = "../data/train.txt"
     data_loader = DataLoader(DataSamplerTrain(txt=txt_address, batch_size=1), batch_size=1)
@@ -152,17 +148,17 @@ if __name__ == "__main__":
         # img_lr = cv2.cvtColor(np.asarray(pil_img_lr), cv2.COLOR_RGB2BGR)
         img_hr = np.asarray(pil_img_hr)
 
-        psnr = get_psnr(sr, img_hr)
+        psnr = compare_psnr(sr, img_hr)
         total_psnr += psnr
         ssim = compare_ssim(sr, img_hr, multichannel=True)
         total_ssim += ssim
         # print("psnr = ", )
         # print("ssim = ", compare_ssim(sr, img_hr))
 
-        # sr = np.hstack([sr, img_lr, img_hr])
-        # cv2.namedWindow("test", cv2.WINDOW_NORMAL)
-        # cv2.imshow("test", sr)
-        # cv2.waitKey(0)
+        sr = np.hstack([sr, img_lr, img_hr])
+        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        cv2.imshow("test", sr)
+        cv2.waitKey(0)
     total_psnr /= (i + 1)
     total_ssim /= (i + 1)
     print("avaerage psnr = ", psnr)
