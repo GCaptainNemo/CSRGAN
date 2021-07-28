@@ -54,7 +54,7 @@ class Train:
                 optimizer_discriminator.step()
 
                 ############################
-                # (2) Update G network: minimize 1-D(G(z)) + Perception Loss + Image Loss + TV Loss
+                # (2) Update G network: minimize 1-D(G(z))  + Image Loss + TV Loss
                 ###########################
                 fake_hr_g, fake_phy_tensor = self.generator(lr_img)
                 fake_out_1 = self.discriminator(fake_hr_g)

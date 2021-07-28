@@ -3,16 +3,14 @@ import pickle
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import cv2
-import torchvision.transforms as transforms
-import torch.nn.functional as functional
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import confusion_matrix
 import itertools
 from torchvision import transforms
 from src.data import DataSamplerTrain
 from torch.utils.data import DataLoader
 from skimage.measure import compare_psnr, compare_ssim, compare_mse
+
 
 
 class InferenceDataset(Dataset):
@@ -128,8 +126,13 @@ if __name__ == "__main__":
     # generator_nn.extention.to("cpu")
     total_psnr = 0
     total_ssim = 0
+    psnr_lst = []
+    ssim_lst = []
+    mse_physical_par_lst = []
     for i, (hr, phy_par, lr) in enumerate(data_loader):
-        sr = torch.squeeze(generator_nn(lr.cuda())[0], dim=0)
+        sr, inf_phy_par = generator_nn(lr.cuda())
+        sr = torch.squeeze(sr, dim=0).detach()
+        inf_phy_par = inf_phy_par.detach()
         print(torch.max(lr))
         print("img.shape = ", sr.shape)
         pil_img = transforms.ToPILImage()(sr)
@@ -149,17 +152,25 @@ if __name__ == "__main__":
         img_hr = np.asarray(pil_img_hr)
 
         psnr = compare_psnr(sr, img_hr)
-        total_psnr += psnr
         ssim = compare_ssim(sr, img_hr, multichannel=True)
+        total_psnr += psnr
         total_ssim += ssim
-        # print("psnr = ", )
+        psnr_lst.append(psnr)
+        ssim_lst.append(ssim)
+        mse_physical_par_lst.append((inf_phy_par.to("cpu") - phy_par) ** 2)
         # print("ssim = ", compare_ssim(sr, img_hr))
+        # sr = np.hstack([sr, img_lr, img_hr])
+        # cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        # cv2.imshow("test", sr)
+        # cv2.waitKey(0)
+        if i > 10:
+            break
 
-        sr = np.hstack([sr, img_lr, img_hr])
-        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
-        cv2.imshow("test", sr)
-        cv2.waitKey(0)
-    total_psnr /= (i + 1)
-    total_ssim /= (i + 1)
-    print("avaerage psnr = ", psnr)
-    print("avaerage ssim = ", ssim)
+    print("avaerage psnr = ", sum(psnr_lst) / len(psnr_lst))
+    print("avaerage ssim = ", sum(ssim_lst) / len(ssim_lst))
+    print("average mse phy_par = ", sum(mse_physical_par_lst) / len(mse_physical_par_lst))
+    plt.figure()
+    plt.scatter(psnr_lst, mse_physical_par_lst, c="r")
+    plt.scatter(ssim_lst, mse_physical_par_lst, c="b")
+    plt.show()
+
