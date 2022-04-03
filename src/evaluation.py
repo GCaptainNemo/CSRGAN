@@ -158,19 +158,19 @@ if __name__ == "__main__":
         psnr_lst.append(psnr)
         ssim_lst.append(ssim)
         mse_physical_par_lst.append((inf_phy_par.to("cpu") - phy_par) ** 2)
-        # print("ssim = ", compare_ssim(sr, img_hr))
-        # sr = np.hstack([sr, img_lr, img_hr])
-        # cv2.namedWindow("test", cv2.WINDOW_NORMAL)
-        # cv2.imshow("test", sr)
-        # cv2.waitKey(0)
-        if i > 10:
-            break
+
+        sr = np.hstack([sr, img_lr, img_hr])
+        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        cv2.imshow("test", sr)
+        cv2.waitKey(0)
+        # if i > 10:
+        #     break
 
     print("avaerage psnr = ", sum(psnr_lst) / len(psnr_lst))
     print("avaerage ssim = ", sum(ssim_lst) / len(ssim_lst))
     print("average mse phy_par = ", sum(mse_physical_par_lst) / len(mse_physical_par_lst))
-    plt.figure()
-    plt.scatter(psnr_lst, mse_physical_par_lst, c="r")
-    plt.scatter(ssim_lst, mse_physical_par_lst, c="b")
-    plt.show()
+    # plt.figure()
+    # plt.scatter(psnr_lst, mse_physical_par_lst, c="r")
+    # plt.scatter(ssim_lst, mse_physical_par_lst, c="b")
+    # plt.show()
 
