@@ -35,9 +35,9 @@
 
 从超分结果来看，细节处具有颜色保持，伪影的问题。
 
-<p><img src="./result/res_3.png" width=30%></p>
+<p align="center"><img src="./result/res_3.png" width=30%></p>
 
-<h6 align="center">超分颜色保持、伪影问题</h6>
+<h6 align="center">超分图像颜色保持、伪影问题</h6>
 
 其中颜色保持主要与最后的颜色min-max归一化有关，min-max归一化容易受像素极端值影响，应使用Sigmoid进行归一化。而伪影这类影响主观感受的问题主要是MSE损失过度平滑导致的，如果完全使用GAN-based超分网络的话，伪影问题可以得到较好抑制。
 
